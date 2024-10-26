@@ -40,8 +40,39 @@ from .FaceToolsBox.alignment import get_detector, infer, \
 from .FaceToolsBox.crop_image import crop
 from .ImagesDataset import ImagesDataset, ImagesDatasetV2, ImagesDatasetV3, ImagesDatasetW
 from .loss import LossRegisterBase
+from .loss.FaceParsing.model import BiSeNet
 
-from .utils import to_tensor, from_tensor, make_train_dirs, face_parsing
+from .utils import to_tensor, from_tensor
+
+def make_train_dirs(save_path):
+    stage_one_path = os.path.join(save_path, "e4e")
+    stage_two_path = os.path.join(save_path, "pose")
+    stage_three_path = os.path.join(save_path, "facial")
+    stage_four_path = os.path.join(save_path, "pti")
+    expressive_param_path = os.path.join(save_path, "expressive")
+    stage_two_param_path = os.path.join(save_path, "pose_param")
+    w_path = os.path.join(save_path, "w")
+    s_path = os.path.join(save_path, "s")
+    cache_path = os.path.join(save_path, "cache.pt")
+    cache_m_path = os.path.join(save_path, "cache")
+    stage_one_path_s = os.path.join(save_path, "e4e_s")
+    face_info_path = os.path.join(save_path, "face_info")
+    stage_four_512_path = os.path.join(save_path, "pti_ft_512")
+
+    os.makedirs(stage_one_path_s, exist_ok=True)
+    os.makedirs(face_info_path, exist_ok=True)
+    os.makedirs(stage_one_path, exist_ok=True)
+    os.makedirs(stage_two_path, exist_ok=True)
+    os.makedirs(stage_three_path, exist_ok=True)
+    os.makedirs(stage_four_path, exist_ok=True)
+    os.makedirs(expressive_param_path, exist_ok=True)
+    os.makedirs(stage_two_param_path, exist_ok=True)
+    os.makedirs(w_path, exist_ok=True)
+    os.makedirs(s_path, exist_ok=True)
+    os.makedirs(cache_m_path, exist_ok=True)
+    os.makedirs(stage_four_512_path, exist_ok=True)
+
+    return  stage_one_path,stage_two_path,stage_three_path,stage_four_path,expressive_param_path,stage_two_param_path,w_path,s_path,cache_path,cache_m_path,stage_one_path_s,face_info_path,stage_four_512_path
 
 points = [(10, 338),(338, 297),(297, 332),
           (332, 284),(284, 251),(251, 389),
@@ -114,10 +145,36 @@ yaw_to_optim_pre = None
 pitch_to_optim_pre = None
 
 where_am_i = os.path.dirname(os.path.realpath(__file__))
+class face_parsing:
+    def __init__(self, path = os.path.join(f"{pretrained_models_path}", "79999_iter.pth")):
+
+        net = BiSeNet(19)
+        state_dict = torch.load(path)
+        net.load_state_dict(state_dict)
+        net.eval()
+        net.to("cuda:0")
+        self.net = net
+        self.to_tensor = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        ])
+
+    def __call__(self, x):
+
+        h, w = x.shape[:2]
+        x = Image.fromarray(np.uint8(x))
+        image = x.resize((512, 512), Image.BILINEAR)
+        img = self.to_tensor(image).unsqueeze(0).to("cuda:0")
+        out = self.net(img)[0].detach().squeeze(0).cpu().numpy().argmax(0)
+        mask = np.zeros_like(out)
+        for label in list(range(1,  7)) + list(range(10, 16)):
+            mask[out == label] = 1
+        out = cv2.resize(np.float32(mask), (w,h))
+        return out[..., np.newaxis]
 
 # instance face parse
 
-#face_parse = face_parsing()
+face_parse = face_parsing()
 
 def get_mask_by_region():
     _mask  = np.zeros((512,512,3), np.float32)
@@ -724,6 +781,10 @@ def pivot_finetuning(
     expressive_path = config.expressive_path if hasattr(config, "expressive_path") else None
     ss_path = config.ss_path if hasattr(config, "ss_path") else None
     space_finetuning = config.space_finetuning if hasattr(config, "space_finetuning") else "style_space"
+    if w_pivot_finetuning:
+        space_finetuning = 'w_space'
+    else:
+        space_finetuning = 'style_space'
     kmeans_info = config.kmeans_info if hasattr(config, "kmeans_info") else None
     random_check = config.random_check if hasattr(config, "random_check") else False
 
@@ -749,7 +810,10 @@ def pivot_finetuning(
                 dataset = ImagesDatasetW(path_images, path_style_latents, transforms.Compose([
                     transforms.ToTensor(),
                     transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
-                    transforms.Resize(size = (resolution, resolution))]))
+                    transforms.Resize(size = (resolution, resolution))]),
+                    kmeans_info = kmeans_info,
+                    random = random_check
+                )
         else:
             raise RuntimeError(f"{space_finetuning} not expected type.")
 
@@ -757,7 +821,7 @@ def pivot_finetuning(
             batch_size = batchsize // world_size
             return DataLoader(
                               dataset, batch_size = batch_size, \
-                              num_workers = min(batchsize, 8),  \
+                              num_workers = min(batchsize, 1),  \
                               #num_workers = 1,  \
                               sampler = DistributedSampler(dataset, shuffle = False, rank = rank, num_replicas = world_size, drop_last = True), \
                               pin_memory=True
@@ -766,7 +830,7 @@ def pivot_finetuning(
             return DataLoader(
                               dataset, batch_size = batchsize, \
                               shuffle = False, \
-                              num_workers = min(batchsize, 8), drop_last = True
+                              num_workers = min(batchsize, 1), drop_last = True
                              )
     
     class PivotLossRegister(LossRegisterBase):
@@ -860,7 +924,7 @@ def pivot_finetuning(
             epoch_pbar.update(1)
         sample_loss = 0
         sample_count = 0
-        for idx, (image, pivot) in enumerate(dataloader):
+        for idx, (image, pivot,index) in enumerate(dataloader):
         
             b,c,h,w = image.shape
             if space_finetuning == "w_space":
@@ -899,7 +963,7 @@ def pivot_finetuning(
 
     if rank == 0 or rank == -1:
         import shutil
-        shutil.copyfile(lastest_model_path, os.path.join(os.path.dirname(lastest_model_path), "best.pth"))
+        # shutil.copyfile(lastest_model_path, os.path.join(os.path.dirname(lastest_model_path), "best.pth"))
         logger.info(f"training finished; the lastet snapshot saved in {lastest_model_path}")
         writer.close()
         
@@ -1283,7 +1347,7 @@ def select_id_latent_and_s_multi(
     w_decoder_path = os.path.join(w_decoder_path, sorted(os.listdir(w_decoder_path),
                                                      key=lambda x: int(''.join(re.findall('[0-9]+', x))))[-1])
     print(f"latest w_decoder weight path is {w_decoder_path}")
-    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'))
+    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'),strict=False)
 
     for p in G.parameters():
         p.requires_grad = False
@@ -1774,8 +1838,10 @@ def facial_attribute_optimization_sslatent(
     loss_elapsed_time = 0
     for epoch in range(1, epochs + 1):
         dlatents_tmp = get_masked_dlatent_in_region(alpha_tensor)
+        dlatents_tmp_re = [(x - torch.min(x)) / (torch.max(x) - torch.min(x)).to(device) for x in dlatents_tmp]
+
         ret = loss_register(
-                            dlatents_tmp,
+                            dlatents_tmp_re,
                             gt_ss_latent_3,
                             masks_oval_gt,
                             weights_all,
@@ -1834,7 +1900,7 @@ def get_pose_batch_1(local_rank: int,
     w_decoder_path = os.path.join(w_decoder_path, sorted(os.listdir(w_decoder_path),
                                                          key=lambda x: int(''.join(re.findall('[0-9]+', x))))[-1])
     print(f"latest w_decoder weight path is {w_decoder_path}")
-    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'))
+    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'),strict=False)
 
     for p in G.parameters():
         p.requires_grad = False
@@ -2009,7 +2075,7 @@ def get_pose_batch_2(local_rank: int,
     w_decoder_path = os.path.join(w_decoder_path, sorted(os.listdir(w_decoder_path),
                                                          key=lambda x: int(''.join(re.findall('[0-9]+', x))))[-1])
     print(f"latest w_decoder weight path is {w_decoder_path}")
-    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'))
+    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'),strict=False)
 
     for p in G.parameters():
         p.requires_grad = False
@@ -2231,7 +2297,7 @@ def get_facial_pipeline_multi( local_rank: int,
     w_decoder_path = os.path.join(w_decoder_path, sorted(os.listdir(w_decoder_path),
                                                          key=lambda x: int(''.join(re.findall('[0-9]+', x))))[-1])
     print(f"latest w_decoder weight path is {w_decoder_path}")
-    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'))
+    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'),strict=False)
 
     for p in G.parameters():
         p.requires_grad = False
@@ -2359,7 +2425,7 @@ def get_facial_pipeline_multi( local_rank: int,
             inter_frame_loss = 0
             id_loss = 0
             ret = {
-                     "l2_loss": l2_loss,
+                     "l2_loss": l1_loss,
                      "lpips_loss": lpips_loss,
                      "fp_loss": fp_loss,
                      "id_loss": id_loss,
@@ -2436,12 +2502,13 @@ def get_facial_pipeline_multi( local_rank: int,
         # stage 3.
 
         style_space = torch.load(os.path.join(s_path, f"{ii + 1}.pt"),map_location=f'cuda:{gpu_id}')
-        gt_ss_latent = [x.to(f'cuda:{gpu_id}') for x in style_space]
+        # gt_ss_latent = [x.to(f'cuda:{gpu_id}') for x in style_space]
+        gt_ss_latent = [(x - torch.min(x)) / (torch.max(x) - torch.min(x)).to(f'cuda:{gpu_id}') for x in style_space]
 
         # w_with_pose = torch.load(os.path.join(stage_two_path, f"{ii + 1}.pt"))
 
         style_space_latent, images_tensor_last, gt_images_tensor_last, gammas, image_gen, facial_param = \
-            facial_attribute_optimization_ssltent(w_with_pose, \
+            facial_attribute_optimization_sslatent(w_with_pose, \
                                                   gen_image, \
                                                   face_info_from_gen, \
                                                   facial_loss_register, \
@@ -2509,7 +2576,7 @@ def pipeline_init(config_path: str,
 
     # stage 1.
     import torch.multiprocessing as multiprocessing
-    torch.multiprocessing.set_start_method('spawn')
+    torch.multiprocessing.set_start_method('spawn', force=True)
     processes = []
 
     torch.cuda.empty_cache()
@@ -2582,7 +2649,7 @@ def pipeline_init(config_path: str,
     w_decoder_path = os.path.join(w_decoder_path, sorted(os.listdir(w_decoder_path),
                                                          key=lambda x: int(''.join(re.findall('[0-9]+', x))))[-1])
     print(f"latest w_decoder weight path is {w_decoder_path}")
-    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'))
+    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{gpu_id}'),strict=False)
 
     for p in G.parameters():
         p.requires_grad = False
@@ -2676,9 +2743,11 @@ def pipeline_init(config_path: str,
             )
 
         style_space = torch.load(os.path.join(s_path, f"{ii + 1}.pt"), map_location=f'cuda:{gpu_id}')
-        gt_ss_latent = [x.to(f'cuda:{gpu_id}') for x in style_space]
+        # gt_ss_latent = [x.to(f'cuda:{gpu_id}') for x in style_space]
+        gt_ss_latent = [(x - torch.min(x)) / (torch.max(x) - torch.min(x)).to(f'cuda:{gpu_id}') for x in style_space]
 
-        gammas=facial_attribute_optimization_ssltent(w_with_pose, \
+
+        gammas=facial_attribute_optimization_sslatent(w_with_pose, \
                                                   gen_image, \
                                                   face_info_from_gen, \
                                                   facial_loss_register, \
@@ -2839,7 +2908,7 @@ def expressive_PTI_pipeline(
     w_decoder_path = os.path.join(w_decoder_path, sorted(os.listdir(w_decoder_path),
                                                          key=lambda x: int(''.join(re.findall('[0-9]+', x))))[-1])
     print(f"latest w_decoder weight path is {w_decoder_path}")
-    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{local_rank}'))
+    G.load_state_dict(torch.load(w_decoder_path, map_location=f'cuda:{local_rank}'),strict=False)
     for p in G.parameters():
         p.requires_grad = False
 
@@ -2929,7 +2998,7 @@ def expressive_PTI_pipeline(
     dist.init_process_group(backend='nccl',world_size=n_gpus, rank=local_rank)
     torch.cuda.set_device(local_rank)
 
-    epochs = 5
+    epochs = 10
     pti_or_not = True
     resume_path = None
     latest_decoder_path = None
@@ -3069,6 +3138,24 @@ def W_PTI_pipeline(config_path: str,
     return latest_w_decoder_path
 
 
+def get_w_latents(paths: dict,
+                  myself_e4e_path: str = None,
+                  w_path=None
+):
+    myself_e4e_path = f'{pretrained_models_path}/e4e_ffhq_encode.pt'
+    e4e = Encoder4EditingWrapper(e4e_path if myself_e4e_path is None else myself_e4e_path)
+
+    path = paths["driving_face_path"]
+    files = [os.path.join(path, x) for x in os.listdir(path)]
+    files = sorted(files, key=lambda x: int(os.path.basename(x).split('.')[0]))
+    for i, _path in enumerate(files):
+        image = np.float32(cv2.imread(_path) / 255.0)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_CUBIC)
+        image_tensor = 2 * (to_tensor(image).to("cuda") - 0.5)
+        with torch.no_grad():
+            latent = e4e(image_tensor)
+        torch.save(latent.cpu().detach(), os.path.join(w_path, f'{i + 1}.pt'))
 
 
 def W_PTI_pipeline_init(

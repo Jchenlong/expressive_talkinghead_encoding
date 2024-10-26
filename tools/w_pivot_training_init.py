@@ -14,6 +14,7 @@ from ExpressiveEncoding.train import W_PTI_pipeline_init, StyleSpaceDecoder, \
     stylegan_path, edict, yaml, \
     logger
 
+import time
 
 @click.command()
 @click.option('--config_path')
@@ -24,10 +25,16 @@ def w_pivot_training(
         save_path: str,
         path: str
 ):
+    start_time = time.time()
+
     W_PTI_pipeline_init(config_path,save_path,path)
 
 
+    end_time = time.time()
+    total_time = end_time - start_time
+    logger.info(f'W_PTI_Init:{total_time}')
 
 
 if __name__ == '__main__':
     w_pivot_training()
+

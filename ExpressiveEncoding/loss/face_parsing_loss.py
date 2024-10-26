@@ -9,7 +9,7 @@ from model import BiSeNet
 class FaceParsingLoss(torch.nn.Module):
     def __init__(self, is_reduce = False):
         super().__init__()
-        model_path = os.path.join(where_am_i.replace("loss", "") ,"third_party/models/79999_iter.pth") # absolute path.
+        model_path = "/app/pretrained_models/79999_iter.pth"
         model = BiSeNet(19)
         model.load_state_dict(torch.load(model_path))
         model.eval()

@@ -74,7 +74,7 @@ def bdinv_training(
             batch_size = batchsize // world_size
             return DataLoader(
                               dataset, batch_size = batch_size, \
-                              num_workers = min(batchsize, 8),  \
+                              num_workers = min(batchsize, 1),  \
                               #num_workers = 1,  \ 
                               sampler = DistributedSampler(dataset, shuffle = False, rank = rank, num_replicas = world_size, drop_last = True), \
                               pin_memory=True
@@ -83,7 +83,7 @@ def bdinv_training(
             return DataLoader(
                               dataset, batch_size = batchsize, \
                               shuffle = False, \
-                              num_workers = min(batchsize, 8), drop_last = True
+                              num_workers = min(batchsize, 1), drop_last = True
                              )
     
     class PivotLossRegister(LossRegisterBase):
@@ -253,7 +253,7 @@ def bdinv_detailed_training(
             batch_size = batchsize // world_size
             return DataLoader(
                               dataset, batch_size = batch_size, \
-                              num_workers = min(batchsize, 8),  \
+                              num_workers = min(batchsize, 1),  \
                               #num_workers = 1,  \
                               sampler = DistributedSampler(dataset, shuffle = False, rank = rank, num_replicas = world_size, drop_last = False), \
                               pin_memory=True
@@ -262,7 +262,7 @@ def bdinv_detailed_training(
             return DataLoader(
                               dataset, batch_size = batchsize, \
                               shuffle = False, \
-                              num_workers = min(batchsize, 8), drop_last = True
+                              num_workers = min(batchsize, 1), drop_last = True
                              )
     
     class PivotLossRegister(LossRegisterBase):
@@ -427,7 +427,7 @@ def f_space_training(
             batch_size = batchsize // world_size
             return DataLoader(
                               dataset, batch_size = batch_size, \
-                              num_workers = min(batchsize, 8),  \
+                              num_workers = min(batchsize, 1),  \
                               #num_workers = 1,  \
                               sampler = DistributedSampler(dataset, shuffle = False, rank = rank, num_replicas = world_size, drop_last = False), \
                               pin_memory=True
@@ -436,7 +436,7 @@ def f_space_training(
             return DataLoader(
                               dataset, batch_size = batchsize, \
                               shuffle = False, \
-                              num_workers = min(batchsize, 8), drop_last = True
+                              num_workers = min(batchsize, 1), drop_last = True
                              )
     
     class PivotLossRegister(LossRegisterBase):

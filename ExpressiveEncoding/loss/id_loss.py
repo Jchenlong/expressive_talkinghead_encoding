@@ -8,7 +8,7 @@ class IDLoss(nn.Module):
     def __init__(self, device='cuda:0'):
         super(IDLoss, self).__init__()
         self.facenet = Backbone(input_size=112, num_layers=50, drop_ratio=0.6, mode='ir_se')
-        self.facenet.load_state_dict(torch.load(os.path.join(where_am_i, "third_party/models/model_ir_se50.pth"),map_location= device))
+        self.facenet.load_state_dict(torch.load("/app/pretrained_models/model_ir_se50.pth",map_location= device))
         self.pool = torch.nn.AdaptiveAvgPool2d((256, 256))
         self.face_pool = torch.nn.AdaptiveAvgPool2d((112, 112))
         self.facenet.eval()

@@ -47,12 +47,16 @@ def kernel(
                           world_size = world_size \
                          )
 @click.command()
+@click.option('--gt_path')
+@click.option('--facial_path')
 @click.option('--config_path')
 @click.option('--save_path')
 @click.option('--decoder_path', default = None)
 @click.option('--resume_path', default = None)
 @click.option('--gpus', default = 1)
 def bdinv_training_invoker(
+                    gt_path: str,
+                    facial_path: str,
                     config_path: str,
                     save_path: str,
                     decoder_path: str,
@@ -69,6 +73,13 @@ def bdinv_training_invoker(
         config = edict(yaml.load(f, Loader = yaml.CLoader))
     resolution = config.resolution if hasattr(config, "resolution") else 1024
     decoder = StyleSpaceDecoder(stylegan_path = stylegan_path, to_resolution = resolution)
+
+    config.gt_path = gt_path
+    config.latent_path = facial_path
+    print(config_path)
+    print(config.gt_path)
+    print(config.latent_path)
+
 
     if decoder_path is not None:
         if not decoder_path.endswith('pt') and not decoder_path.endswith('pth'):

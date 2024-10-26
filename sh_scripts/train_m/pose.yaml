@@ -1,0 +1,12 @@
+losses:
+        - 
+          alias: l2_loss
+          name: L2Loss
+          weights: 1.0
+        - 
+          alias: lpips_loss
+          name: LPIPS
+          weights: 1.0
+        - alias: l1
+          name: L1Loss
+          weights: 1.0

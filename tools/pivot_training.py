@@ -41,27 +41,38 @@ def kernel(
                             batchsize = config.batchsize, \
                             lr = config.lr, \
                             rank = rank, \
-                            world_size = world_size \
+                            world_size = world_size, \
+                            w_pivot_finetuning = config.w_pivot_finetuning, \
                            )
 @click.command()
+@click.option('--gt_path')
+@click.option('--latent_path')
 @click.option('--config_path')
 @click.option('--save_path')
 @click.option('--resume_path', default = None)
-@click.option('--gpus', default = 1)
+@click.option('--gpus', default = 4)
 def pivot_training(
+                    gt_path: str,
+                    latent_path: str,
                     config_path: str,
                     save_path: str,
                     resume_path: str,
-                    gpus: int
+                    gpus: int,
                   ):
 
     assert gpus >= 1, "expected gpu device."
     tensorboard = os.path.join(save_path, "tensorboard", f"{time.time()}")
-    snapshots = os.path.join(save_path, "snapshots")
-    os.makedirs(snapshots, exist_ok = True)
+
 
     with open(config_path) as f:
         config = edict(yaml.load(f, Loader = yaml.CLoader))
+
+    snapshots = os.path.join(save_path, "facial_snapshots_ft_512")
+    if config.w_pivot_finetuning:
+        snapshots = os.path.join(save_path, "w_snapshots")
+    os.makedirs(snapshots, exist_ok=True)
+    config.gt_path = gt_path
+    config.latent_path = latent_path
 
     use_kmeans = config.pti.use_kmeans if hasattr(config.pti, "use_kmeans") else False
     if use_kmeans:
@@ -90,7 +101,8 @@ def pivot_training(
                          epochs = config.epochs, \
                          resolution = resolution, \
                          batchsize = config.batchsize, \
-                         lr = config.lr \
+                         lr = config.lr, \
+                         w_pivot_finetuning=config.w_pivot_finetuning, \
                         )
     else:
         world_size = gpus

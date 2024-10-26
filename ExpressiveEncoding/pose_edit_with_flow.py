@@ -13,7 +13,7 @@ class PoseEdit:
     _zero_padding = torch.zeros(1, 18, 1)
     def __init__(self,
                  model_path = os.path.join(where_am_i, \
-                              'third_party/models/modellarge10k.pt'),
+                              '/app/pretrained_models/modellarge10k.pt'),
                  device=0,
                 ):
         self.cnf = cnf(512, '512-512-512-512-512', 17, 1)

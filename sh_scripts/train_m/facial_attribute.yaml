@@ -1,0 +1,25 @@
+losses:
+        - 
+          alias: l2
+          name: L2Loss
+          weights: 1.0
+        - 
+          alias: lpips
+          name: LPIPS
+          weights: 1.0
+        - 
+          alias: if_loss
+          name: FDBLoss
+          weights: 1.0
+        - 
+          alias: fp
+          name: FaceParsingLoss
+          weights: 1.0
+        - 
+          alias: id_loss
+          name: IDLoss
+          weights: 1.0
+        -
+          alias: l1
+          name: L1Loss
+          weights: 1.0

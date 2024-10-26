@@ -44,7 +44,7 @@ def kmeans_data(
     else:
         raise RuntimeError(f"{type(datas[0])} expected type Tensor or list.")
 
-    n, c = datas.shape
+    n, c = datas.shape[0],datas.shape[1]
     clusters = n // group_size
 
     cluster_ids, cluster_centers = kmeans(X = datas.reshape(n, -1), num_clusters = clusters, \

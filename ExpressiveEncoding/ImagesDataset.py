@@ -143,24 +143,50 @@ class ImagesDatasetW(Dataset):
     def __init__(self,
                  source_root,
                  latent_root,
-                 source_transform=None):
+                 source_transform=None,
+                 kmeans_info: dict = None,
+                 random: bool = False
+                 ):
         self.source_paths = sorted(make_dataset(source_root), \
                             key = lambda x: int(os.path.basename(x[1]).split('.')[0]))
         self.latent_root = latent_root
         self.source_transform = source_transform
 
+        self.remap = None
+        if kmeans_info is not None:
+            kmeans_labels, centers = kmeans_info["cluster_ids"], kmeans_info["cluster_centers"]
+            flags = [False for _ in range(len(centers))]
+            indexes = [0 for _ in range(len(centers))]
+            for i in range(len(self.source_paths)):
+                label = kmeans_labels[i]
+                if not flags[label]:
+                    indexes[label] = i
+                    flags[label] = True
+            self.remap = indexes
+        if random:
+            files_length = len(self.source_paths) // 25
+            indexes = np.random.choice(np.array(list(range(len(self.source_paths)))), files_length)
+            self.remap = indexes
+
+
     def __len__(self):
         if DEBUG:
             return 1800
-        return len(self.source_paths)
+        if self.remap is not None:
+            return len(self.remap)
+        else:
+            return len(self.source_paths)
+
 
     def __getitem__(self, index):
+        if self.remap is not None:
+            index = self.remap[index]
         _, from_path = self.source_paths[index]
         from_im = Image.open(from_path).convert('RGB')
         if self.source_transform:
             from_im = self.source_transform(from_im)
         latent = torch.load(os.path.join(self.latent_root, f'{index + 1}.pt'))
-        return from_im, latent[0]
+        return from_im, latent[0], index
 
 class ImagesDatasetV2(ImagesDataset):
     def __init__(self, 
