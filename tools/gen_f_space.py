@@ -35,6 +35,7 @@ def get_f_space(
                ):
 
     device = "cuda:0"
+    print(model_path)
 
     images = [os.path.join(from_path, x) for x in sorted(os.listdir(from_path), key = lambda x: int(x.split('.')[0]))]
     os.makedirs(to_path, exist_ok = True)

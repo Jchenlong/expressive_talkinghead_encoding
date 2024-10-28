@@ -40,6 +40,7 @@ from .FaceToolsBox.alignment import get_detector, infer, \
 from .FaceToolsBox.crop_image import crop
 from .ImagesDataset import ImagesDataset, ImagesDatasetV2, ImagesDatasetV3, ImagesDatasetW
 from .loss import LossRegisterBase
+from .loss.FaceParsing.model import BiSeNet
 
 from .utils import to_tensor, from_tensor, make_train_dirs, face_parsing
 
