@@ -1,0 +1,27 @@
+gt_path: " "
+latent_path: " "
+f_latent_path: " "
+pti:
+    net:
+        base_filter_num: 64
+        source_size: 64
+        target_size: 4
+        target_filter_num: 512
+
+    losses:
+            -
+              alias: l2
+              name: L2Loss
+              weights: 1
+            -
+              alias: lpips
+              name: LPIPS
+              weights: 1
+            -
+              alias: l2_code
+              name: L2Loss
+              weights: 10
+epochs: 50
+batchsize: 1
+lr: 0.1
+resolution: 512

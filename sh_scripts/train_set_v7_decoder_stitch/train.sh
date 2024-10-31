@@ -13,9 +13,9 @@ if [ -e ${facial_path} ]; then
 else
   facial_path=${exp_dir}/facial
   echo "facial"
-  decoder_path=${exp_dir}/pti_ft_512/facial_snapshots_ft_512
+  decoder_path=${exp_dir}/pti_ft_512/snapshots
 fi
-f_latent_path=${exp_dir}/f_space/feature
+f_latent_path=${exp_dir}/f_space/stitch/feature
 
 function main
 {
@@ -23,12 +23,12 @@ function main
                                  --gt_path ${gt_path} \
                                  --facial_path ${facial_path} \
                                  --f_latent_path ${f_latent_path} \
-                                 --config_path ./sh_scripts/train_set_v7_decoder/config.yaml \
-                                 --save_path ${exp_dir}/f_space/decoder \
+                                 --config_path /data1/chenlong/github/Jchenlong/expressive_talkinghead_encoding/sh_scripts/train_set_v7_decoder_stitch/config.yaml \
+                                 --save_path ${exp_dir}/f_space/stitch/decoder \
                                  --gpus 4 \
-                                 --decoder_path ${decoder_path}
+                                 --decoder_path ${decoder_path} 
 }
 
 _timestamp=`date +%Y%m%d%H`
-export MASTER_PORT=25514
+export MASTER_PORT=15581
 main

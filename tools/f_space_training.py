@@ -78,6 +78,7 @@ def bdinv_training_invoker(
 
     config.gt_path = gt_path
     config.latent_path = facial_path
+<<<<<<< HEAD
     print(config_path)
     print(config.gt_path)
     print(config.latent_path)
@@ -90,6 +91,11 @@ def bdinv_training_invoker(
         kmeans_info = kmeans_data(config.latent_path, path)
         setattr(config.pti, "kmeans_info", kmeans_info)
 
+=======
+    print(config.gt_path)
+    print(config.latent_path)
+
+>>>>>>> origin/feature/train_refactor_162_train_stitch
 
     if decoder_path is not None:
         if not decoder_path.endswith('pt') and not decoder_path.endswith('pth'):
