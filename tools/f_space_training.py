@@ -78,7 +78,6 @@ def bdinv_training_invoker(
 
     config.gt_path = gt_path
     config.latent_path = facial_path
-<<<<<<< HEAD
     print(config_path)
     print(config.gt_path)
     print(config.latent_path)
