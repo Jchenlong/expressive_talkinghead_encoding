@@ -18,12 +18,12 @@ fi
 
 function main
 {
-    python tools/f_space_training.py \
+    python tools/f_space_training_stitch.py \
                                  --gt_path ${gt_path} \
                                  --facial_path ${facial_path} \
-                                 --config_path /data1/chenlong/github/Jchenlong/expressive_talkinghead_encoding/sh_scripts/train_set_v7_encoder/config.yaml \
-                                 --save_path ${exp_dir}/f_space/encoder \
-                                 --gpus 1 \
+                                 --config_path /data1/chenlong/github/Jchenlong/expressive_talkinghead_encoding/sh_scripts/train_set_v7_encoder_stitch/config.yaml \
+                                 --save_path ${exp_dir}/f_space/stitch/encoder \
+                                 --gpus 4 \
                                  --decoder_path ${decoder_path} 
 }
 

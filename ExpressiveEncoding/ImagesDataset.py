@@ -288,7 +288,8 @@ class ImagesDatasetF(ImagesDataset):
             from_im = self.source_transform(from_im)
         latent = torch.load(os.path.join(self.latent_root, f'{index + 1}.pt'))
         f_latent = torch.load(os.path.join(self.f_space, f'{index}.pt'), map_location = 'cpu')
-        return from_im, [x[0].detach().cpu() for x in latent], f_latent[0]
+        return from_im, [x[0].detach().cpu() for x in latent], f_latent['f'][0]
+        # return from_im, [x[0].detach().cpu() for x in latent], f_latent[0]
 
 class ImagesDatasetHasMask(ImagesDataset):
     """ImagesDataset for pivot tuning.

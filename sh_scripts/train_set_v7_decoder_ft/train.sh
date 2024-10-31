@@ -15,23 +15,21 @@ else
   echo "facial"
   decoder_path=${exp_dir}/pti_ft_512/snapshots
 fi
+f_latent_path=${exp_dir}/f_space/feature_ft/snapshots
+#f_decoder_path=${exp_dir}/f_space/decoder/snapshots/20.pth
 
 function main
 {
-    python tools/f_space_training.py \
+    python tools/f_space_decoder.py \
                                  --gt_path ${gt_path} \
                                  --facial_path ${facial_path} \
-                                 --config_path /data1/chenlong/github/Jchenlong/expressive_talkinghead_encoding/sh_scripts/train_set_v7_encoder/config.yaml \
-                                 --save_path ${exp_dir}/f_space/encoder \
+                                 --f_latent_path ${f_latent_path} \
+                                 --config_path /data1/chenlong/github/Jchenlong/expressive_talkinghead_encoding/sh_scripts/train_set_v7_decoder_ft/config.yaml \
+                                 --save_path ${exp_dir}/f_space/decoder_ft \
                                  --gpus 1 \
-                                 --decoder_path ${decoder_path} 
+                                 --decoder_path ${decoder_path}
 }
 
-if [ ! -d "log/${exp_name}" ]; then
-    
-    mkdir -p "log/${exp_name}"
-fi
-
 _timestamp=`date +%Y%m%d%H`
-export MASTER_PORT=25557
+export MASTER_PORT=15583
 main
