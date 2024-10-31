@@ -61,6 +61,9 @@ def bdinv_training(
         dist.init_process_group("nccl", rank=rank, world_size=world_size) 
         torch.cuda.set_device(rank)
 
+    kmeans_info = config.kmeans_info if hasattr(config, "kmeans_info") else None
+    random_check = config.random_check if hasattr(config, "random_check") else False
+
     def get_dataloader(
                       ):
     
@@ -68,13 +71,15 @@ def bdinv_training(
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
             transforms.Resize(size = (resolution, resolution))]),
+            kmeans_info=kmeans_info,
+            random=random_check
             )
 
         if rank != -1:
             batch_size = batchsize // world_size
             return DataLoader(
                               dataset, batch_size = batch_size, \
-                              num_workers = min(batchsize, 1),  \
+                              num_workers = min(batchsize, 2),  \
                               #num_workers = 1,  \ 
                               sampler = DistributedSampler(dataset, shuffle = False, rank = rank, num_replicas = world_size, drop_last = True), \
                               pin_memory=True
@@ -83,7 +88,7 @@ def bdinv_training(
             return DataLoader(
                               dataset, batch_size = batchsize, \
                               shuffle = False, \
-                              num_workers = min(batchsize, 1), drop_last = True
+                              num_workers = min(batchsize, 2), drop_last = True
                              )
     
     class PivotLossRegister(LossRegisterBase):
@@ -253,7 +258,7 @@ def bdinv_detailed_training(
             batch_size = batchsize // world_size
             return DataLoader(
                               dataset, batch_size = batch_size, \
-                              num_workers = min(batchsize, 1),  \
+                              num_workers = min(batchsize, 2),  \
                               #num_workers = 1,  \
                               sampler = DistributedSampler(dataset, shuffle = False, rank = rank, num_replicas = world_size, drop_last = False), \
                               pin_memory=True
@@ -262,7 +267,7 @@ def bdinv_detailed_training(
             return DataLoader(
                               dataset, batch_size = batchsize, \
                               shuffle = False, \
-                              num_workers = min(batchsize, 1), drop_last = True
+                              num_workers = min(batchsize, 2), drop_last = True
                              )
     
     class PivotLossRegister(LossRegisterBase):
@@ -414,6 +419,9 @@ def f_space_training(
         dist.init_process_group("nccl", rank=rank, world_size=world_size) 
         torch.cuda.set_device(rank)
 
+    kmeans_info = config.kmeans_info if hasattr(config, "kmeans_info") else None
+    random_check = config.random_check if hasattr(config, "random_check") else False
+
     def get_dataloader(
                       ):
     
@@ -421,13 +429,15 @@ def f_space_training(
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
             transforms.Resize(size = (resolution, resolution))]),
+            kmeans_info=kmeans_info,
+            random=random_check
             )
 
         if rank != -1:
             batch_size = batchsize // world_size
             return DataLoader(
                               dataset, batch_size = batch_size, \
-                              num_workers = min(batchsize, 1),  \
+                              num_workers = min(batchsize, 2),  \
                               #num_workers = 1,  \
                               sampler = DistributedSampler(dataset, shuffle = False, rank = rank, num_replicas = world_size, drop_last = False), \
                               pin_memory=True
@@ -436,7 +446,7 @@ def f_space_training(
             return DataLoader(
                               dataset, batch_size = batchsize, \
                               shuffle = False, \
-                              num_workers = min(batchsize, 1), drop_last = True
+                              num_workers = min(batchsize, 2), drop_last = True
                              )
     
     class PivotLossRegister(LossRegisterBase):
