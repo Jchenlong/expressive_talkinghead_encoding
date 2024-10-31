@@ -24,7 +24,7 @@ from .loss import LossRegisterBase
 from .decoder import StyleSpaceDecoder
 from .encoder import simpleEncoder, simpleEncoderV2
 from .train import logger, stylegan_path, edict, yaml
-with open(os.path.join("/data1/wanghaoran/Amemori", "template.yaml")) as f:
+with open(os.path.join("/app/lpips", "template.yaml")) as f:
     config = yaml.load(f, Loader = yaml.CLoader)
 
 regions = eval(config["soft_mask_region"])
