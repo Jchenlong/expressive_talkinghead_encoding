@@ -42,10 +42,11 @@ def get_attribute_multi(
     logger.info(f'pipeline_init:{total_time}')
 
     start_time = time.time()
-    pose_n_workers = 2 * gpu_numbers
+    pose_n_workers = 1 * gpu_numbers
     gpu = 0
     start_index = None
     end_index = None
+    torch.cuda.empty_cache()
 
     multiprocessing.spawn(get_pose_pipeline_multi, nprocs=pose_n_workers,
                           args=(gen_length, config_path, save_path, str(gpu), start_index, end_index, path, gpu_numbers,pose_n_workers))
@@ -59,7 +60,7 @@ def get_attribute_multi(
     start_time = time.time()
 
 
-    facial_n_workers = 3 * gpu_numbers
+    facial_n_workers = 2 * gpu_numbers
     multiprocessing.spawn(get_facial_pipeline_multi, nprocs=facial_n_workers,
                           args=(gen_length, config_path, save_path, str(gpu), start_index, end_index, path, gammas,gpu_numbers,facial_n_workers))
     torch.cuda.empty_cache()

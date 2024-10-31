@@ -59,7 +59,7 @@ def pivot_training(
                     resume_path: str,
                     gpus: int,
                   ):
-
+    start_time = time.time()
     assert gpus >= 1, "expected gpu device."
     tensorboard = os.path.join(save_path, "tensorboard", f"{time.time()}")
 
@@ -120,7 +120,10 @@ def pivot_training(
                  nprocs=world_size,
                  join=True
                 )
-                                  
+
+    end_time = time.time()
+    total_time = end_time - start_time
+    logger.info(f'PTI_Train:{total_time}')
 
 if __name__ == '__main__':
     os.environ["MASTER_ADDR"] = "localhost"

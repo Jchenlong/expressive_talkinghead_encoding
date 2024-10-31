@@ -19,6 +19,7 @@ from ExpressiveEncoding.f_space_train import f_space_training, StyleSpaceDecoder
                                              stylegan_path, edict, yaml, \
                                              logger
 
+from ExpressiveEncoding.kmeans_dataset import kmeans_data
 
 def kernel(
            rank, 
@@ -71,6 +72,8 @@ def f_space_decoder_training_invoker(
                         gpus: int
                       ):
 
+    start_time = time.time()
+
     assert gpus >= 1, "expected gpu device."
     tensorboard = os.path.join(save_path, "tensorboard", f"{time.time()}")
     snapshots = os.path.join(save_path, "snapshots")
@@ -88,6 +91,14 @@ def f_space_decoder_training_invoker(
     print(config.gt_path)
     print(config.latent_path)
     print(config.f_latent_path)
+
+    use_kmeans = config.pti.use_kmeans if hasattr(config.pti, "use_kmeans") else False
+    if use_kmeans:
+        hash_string = hashlib.md5(config.latent_path.encode(encoding='UTF-8')).hexdigest()
+        path = os.path.join("tmp_dir", str(hash_string) + ".pt")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        kmeans_info = kmeans_data(config.latent_path, path)
+        setattr(config.pti, "kmeans_info", kmeans_info)
 
     if decoder_path is not None:
         if not decoder_path.endswith('pt') and not decoder_path.endswith('pth'):
@@ -131,6 +142,9 @@ def f_space_decoder_training_invoker(
                  join=True
                 )
                                   
+    end_time = time.time()
+    total_time = end_time - start_time
+    logger.info(f'feature_decoder_train:{total_time}')
 
 if __name__ == '__main__':
     os.environ["MASTER_ADDR"] = "localhost"

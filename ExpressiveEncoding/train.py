@@ -821,7 +821,7 @@ def pivot_finetuning(
             batch_size = batchsize // world_size
             return DataLoader(
                               dataset, batch_size = batch_size, \
-                              num_workers = min(batchsize, 1),  \
+                              num_workers = min(batchsize, 2),  \
                               #num_workers = 1,  \
                               sampler = DistributedSampler(dataset, shuffle = False, rank = rank, num_replicas = world_size, drop_last = True), \
                               pin_memory=True
@@ -830,7 +830,7 @@ def pivot_finetuning(
             return DataLoader(
                               dataset, batch_size = batchsize, \
                               shuffle = False, \
-                              num_workers = min(batchsize, 1), drop_last = True
+                              num_workers = min(batchsize, 2), drop_last = True
                              )
     
     class PivotLossRegister(LossRegisterBase):
@@ -1617,7 +1617,8 @@ def get_pose_pipeline_multi(local_rank,
     if local_rank < gpu_numbers:
         gpu = gpu % gpu_numbers
         i = gpu
-        gen_length_2 = int(gen_length / 3 * 2)
+        # gen_length_2 = int(gen_length / 3 * 2)
+        gen_length_2 = int(gen_length)
         start_index = i * (gen_length_2 // gpu_numbers)
         end_index = (i + 1) * (gen_length_2 // gpu_numbers)
         if gpu == (gpu_numbers - 1):
@@ -1626,18 +1627,18 @@ def get_pose_pipeline_multi(local_rank,
         get_pose_batch_2(local_rank, gen_length, config_path, save_path, str(gpu), start_index, end_index,
                                   path)
 
-    elif gpu_numbers <= local_rank < num_workers:
-        gpu = int(local_rank)
-        gpu = gpu % gpu_numbers
-        i = gpu
-        gen_length_1 = gen_length - int(gen_length / 3 * 2)
-        start_index = i * (gen_length_1 // gpu_numbers) + int(gen_length / 3 * 2)
-        end_index = (i + 1) * (gen_length_1 // gpu_numbers) + int(gen_length / 3 * 2)
-        if gpu == (gpu_numbers - 1):
-            end_index = gen_length_1 + int(gen_length / 3 * 2)
-        logger.info(f'{start_index}:{end_index}')
-        get_pose_batch_1(local_rank, gen_length, config_path, save_path, str(gpu), start_index, end_index,
-                                  path)
+    # elif gpu_numbers <= local_rank < num_workers:
+    #     gpu = int(local_rank)
+    #     gpu = gpu % gpu_numbers
+    #     i = gpu
+    #     gen_length_1 = gen_length - int(gen_length / 3 * 2)
+    #     start_index = i * (gen_length_1 // gpu_numbers) + int(gen_length / 3 * 2)
+    #     end_index = (i + 1) * (gen_length_1 // gpu_numbers) + int(gen_length / 3 * 2)
+    #     if gpu == (gpu_numbers - 1):
+    #         end_index = gen_length_1 + int(gen_length / 3 * 2)
+    #     logger.info(f'{start_index}:{end_index}')
+    #     get_pose_batch_1(local_rank, gen_length, config_path, save_path, str(gpu), start_index, end_index,
+    #                               path)
     torch.cuda.empty_cache()
 
 def facial_attribute_optimization_sslatent(
