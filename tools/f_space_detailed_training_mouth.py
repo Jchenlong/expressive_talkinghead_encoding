@@ -15,11 +15,9 @@ from tqdm import tqdm
 import torch.multiprocessing as mp
 #mp.set_start_method('spawn')
 
-from ExpressiveEncoding.f_space_train_ft import f_space_training, StyleSpaceDecoder, \
+from ExpressiveEncoding.f_space_train_ft import bdinv_detailed_training_stitch, StyleSpaceDecoder, \
                                              stylegan_path, edict, yaml, \
                                              logger
-
-
 def kernel(
            rank, 
            world_size,
@@ -32,11 +30,10 @@ def kernel(
            encoder_resume_path
           ):
     
-    return f_space_training(
+    return bdinv_detailed_training_stitch(
                           config.gt_path, \
                           config.latent_path, \
-                          config.f_latent_path, \
-                          snapshots,
+                          snapshots, \
                           decoder, \
                           config.pti, \
                           tensorboard = tensorboard, \
@@ -49,27 +46,26 @@ def kernel(
                           rank = rank, \
                           world_size = world_size \
                          )
+
 @click.command()
 @click.option('--gt_path')
 @click.option('--facial_path')
-@click.option('--f_latent_path')
 @click.option('--config_path')
 @click.option('--save_path')
 @click.option('--decoder_path', default = None)
 @click.option('--resume_path', default = None)
 @click.option('--encoder_resume_path', default = None)
 @click.option('--gpus', default = 1)
-def f_space_decoder_training_invoker(
-                        gt_path: str,
-                        facial_path: str,
-                        f_latent_path: str,
-                        config_path: str,
-                        save_path: str,
-                        decoder_path: str,
-                        encoder_resume_path: str,
-                        resume_path: str,
-                        gpus: int
-                      ):
+def bdinv_training_invoker(
+                    gt_path: str,
+                    facial_path: str,
+                    config_path: str,
+                    save_path: str,
+                    decoder_path: str,
+                    resume_path: str,
+                    encoder_resume_path: str,
+                    gpus: int
+                  ):
 
     assert gpus >= 1, "expected gpu device."
     tensorboard = os.path.join(save_path, "tensorboard", f"{time.time()}")
@@ -83,10 +79,8 @@ def f_space_decoder_training_invoker(
 
     config.gt_path = gt_path
     config.latent_path = facial_path
-    config.f_latent_path = f_latent_path
     print(config.gt_path)
     print(config.latent_path)
-    print(config.f_latent_path)
 
     if decoder_path is not None:
         if not decoder_path.endswith('pt') and not decoder_path.endswith('pth'):
@@ -96,10 +90,9 @@ def f_space_decoder_training_invoker(
         decoder.load_state_dict(torch.load(decoder_path), False)
 
     if gpus <= 1:
-        f_space_training(
+        bdinv_detailed_training_stitch(
                        config.gt_path, \
                        config.latent_path, \
-                       config.f_latent_path, \
                        snapshots, \
                        decoder, \
                        config.pti, \
@@ -135,4 +128,4 @@ if __name__ == '__main__':
     os.environ["MASTER_ADDR"] = "localhost"
     if "MASTER_PORT" not in os.environ:
         os.environ["MASTER_PORT"] = "29500"
-    f_space_decoder_training_invoker()
+    bdinv_training_invoker()

@@ -15,10 +15,10 @@ else
 fi
 
 f_encoder_path=${exp_dir}/f_space/encoder/snapshots
-f_decoder_path=${exp_dir}/f_space/decoder_ft/snapshots
+f_decoder_path=${exp_dir}/f_space/stitch/decoder/snapshots
 #f_decoder_path=${exp_dir}/f_space/decoder_ft/snapshots
 f_space_path=${exp_dir}/f_space/f_space_ft.pt
-save_path=/data1/chenlong/yuyuhang/interface_out/1030/1
+save_path=/data1/chenlong/yuyuhang/interface_out/1115/1
 echo ${expname}
 echo 'gen_val_video'
 
@@ -27,7 +27,7 @@ function main
     python tools/test_feature_decoder_soft_mask.py \
                                  --expname ${expname} \
                                  --save_path ${save_path} \
-                                 --latest_decoder_path ${decoder_path} \
+                                 --latest_decoder_path ${f_decoder_path} \
                                  --f_space_path ${f_space_path}
 }
 
