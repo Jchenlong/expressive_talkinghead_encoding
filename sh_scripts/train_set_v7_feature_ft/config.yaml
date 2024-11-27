@@ -21,7 +21,7 @@ pti:
               alias: l2_code
               name: L2Loss
               weights: 10
-epochs: 50
+epochs: 5
 batchsize: 1
 lr: 0.1
 resolution: 512

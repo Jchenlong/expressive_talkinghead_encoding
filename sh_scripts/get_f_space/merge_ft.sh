@@ -19,7 +19,7 @@ to_path=${exp_dir}/f_space/f_space_ft.pt
 echo 'merge_feature'
 function main
 {
-    CUDA_VISIBLE_DEVICES=0 python merge_more2one_ft.py ${feature_path} ${to_path}
+    python merge_more2one_ft.py ${feature_path} ${to_path}
 }
 
 _timestamp=`date +%Y%m%d%H`

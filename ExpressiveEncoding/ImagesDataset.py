@@ -282,7 +282,7 @@ class ImagesDataset_W(Dataset):
         if self.source_transform:
             from_im = self.source_transform(from_im)
         latent = torch.load(os.path.join(self.latent_root, f'{index + 1}.pt'))
-        return from_im, latent
+        return from_im, latent, index
 
 class ImagesDatasetF(ImagesDataset):
     """ImagesDataset for pivot tuning.

@@ -13,7 +13,7 @@ if [ -e ${facial_path} ]; then
 else
   facial_path=${exp_dir}/facial
   echo "facial"
-  decoder_path=${exp_dir}/pti_ft_512/facial_snapshots_ft_512
+  decoder_path=${exp_dir}/pti_ft_512/snapshots
 fi
 
 function main

@@ -11,7 +11,7 @@ pti:
               name: LPIPS
               weights: 1.0
     use_kmeans: True
-epochs: 10
+epochs: 5
 batchsize: 8
 lr: 0.0003
 resolution: 512

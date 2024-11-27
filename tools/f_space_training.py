@@ -90,12 +90,6 @@ def bdinv_training_invoker(
         kmeans_info = kmeans_data(config.latent_path, path)
         setattr(config.pti, "kmeans_info", kmeans_info)
 
-=======
-    print(config.gt_path)
-    print(config.latent_path)
-
->>>>>>> origin/feature/train_refactor_162_train_stitch
-
     if decoder_path is not None:
         if not decoder_path.endswith('pt') and not decoder_path.endswith('pth'):
             folder = decoder_path 

@@ -2857,7 +2857,7 @@ def pivot_train_stage(
         sample_loss = 0
         sample_count = 0
         # train_samper.set_epoch(epoch)
-        for idx, (image, pivot) in enumerate(dataloader):
+        for idx, (image, pivot,index) in enumerate(dataloader):
 
             if w_pivot_finetuning:
                 pivot = pivot.cuda(local_rank)

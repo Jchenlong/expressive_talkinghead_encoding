@@ -23,7 +23,7 @@ function main
     python tools/f_space_detailed_training_stitch.py \
                                  --gt_path ${gt_path} \
                                  --facial_path ${facial_path} \
-                                 --config_path /data1/chenlong/github/Jchenlong/expressive_talkinghead_encoding/sh_scripts/train_set_v7_feature_ft/config.yaml \
+                                 --config_path ./sh_scripts/train_set_v7_feature_ft/config.yaml \
                                  --save_path ${save_path} \
                                  --gpus 1 \
                                  --decoder_path ${decoder_path} \
