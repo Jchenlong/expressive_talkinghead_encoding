@@ -3008,6 +3008,7 @@ def expressive_PTI_pipeline(
     pti_or_not = True
 
     # stage 4.
+    epochs = int(os.environ.get('SPTI_EPOCHS', 10))
     snapshots = os.path.join(stage_four_512_path, "snapshots")
     os.makedirs(snapshots, exist_ok=True)
 
@@ -3019,7 +3020,7 @@ def expressive_PTI_pipeline(
                                                config_pti, \
                                                writer=writer, \
                                                resume_path=w_decoder_path,
-                                               epochs=5,
+                                               epochs=epochs,
                                                local_rank=local_rank,
                                                )
     logger.info(f"latest model path is {latest_decoder_path}")
@@ -3290,7 +3291,7 @@ def W_PTI_pipeline_multi(config_path: str,
     dist.init_process_group(backend='nccl',world_size=n_gpus, rank=local_rank)
     torch.cuda.set_device(local_rank)
 
-    epochs = 20
+    epochs = int(os.environ.get('WPTI_EPOCHS', 20))
     pti_or_not = True
     resume_path = None
     latest_decoder_path = None

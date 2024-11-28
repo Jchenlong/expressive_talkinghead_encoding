@@ -159,7 +159,9 @@ def bdinv_training(
 
     #optim = torch.optim.Adam(parameters, lr = lr)
     total_idx = 0
-    epochs = kwargs.get("epochs", 100)
+    # epochs = kwargs.get("epochs", 100)
+    epochs = int(os.environ.get('ENCODER_PTI_EPOCHS', 20))
+
     tensorboard = kwargs.get("tensorboard", None)
     writer = None
     if tensorboard is not None and (rank == 0 or rank == -1):

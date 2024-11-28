@@ -15,7 +15,7 @@ else
   echo "facial"
   decoder_path=${exp_dir}/pti_ft_512/snapshots
 fi
-save_path=${exp_dir}/f_space/feature_ft
+save_feature_ft_path=${exp_dir}/f_space/feature_ft
 f_resume_path=${exp_dir}/f_space/feature
 
 function main
@@ -24,7 +24,7 @@ function main
                                  --gt_path ${gt_path} \
                                  --facial_path ${facial_path} \
                                  --config_path ./sh_scripts/train_set_v7_feature_ft_previous/config.yaml \
-                                 --save_path ${save_path} \
+                                 --save_path ${save_feature_ft_path} \
                                  --gpus 4 \
                                  --decoder_path ${decoder_path} \
                                  --resume_path ${f_resume_path}
